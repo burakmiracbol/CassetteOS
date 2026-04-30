@@ -18,6 +18,20 @@ static unsigned long lastUiRefreshMs = 0;
 static unsigned long lastLedRefreshMs = 0;
 static uint8_t ledHue = 0;
 
+static unsigned long lastBtnPrevMs = 0;
+static unsigned long lastBtnNextMs = 0;
+static unsigned long lastBtnPlayMs = 0;
+static unsigned long lastBtnVolDownMs = 0;
+static unsigned long lastBtnVolUpMs = 0;
+
+static bool buttonPressed(int pin, unsigned long &lastMs) {
+    if(pin < 0) return false;
+    if(digitalRead(pin) != LOW) return false;
+    if((unsigned long)(millis() - lastMs) < BUTTON_DEBOUNCE_MS) return false;
+    lastMs = millis();
+    return true;
+}
+
 #if LVGL_VERSION_MAJOR >= 9
 static void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
     int32_t w = area->x2 - area->x1 + 1;
@@ -71,8 +85,7 @@ static bool my_touch_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
 
     if(appState == AppState::DisplayOff) {
         setBacklight(true);
-        AppState wakeState = previousVisibleState == AppState::Search ? AppState::Search : AppState::NowPlaying;
-        setAppState(wakeState);
+        setAppState(previousVisibleState);
         data->state = LV_INDEV_STATE_RELEASED;
 #if LVGL_VERSION_MAJOR >= 9
         return;
@@ -105,6 +118,12 @@ void initDisplayHardware() {
     pinMode(TFT_BL, OUTPUT);
     pinMode(BAT_PIN, INPUT);
     setBacklight(true);
+
+    if(BTN_PREV_PIN >= 0) pinMode(BTN_PREV_PIN, INPUT_PULLUP);
+    if(BTN_NEXT_PIN >= 0) pinMode(BTN_NEXT_PIN, INPUT_PULLUP);
+    if(BTN_PLAY_PIN >= 0) pinMode(BTN_PLAY_PIN, INPUT_PULLUP);
+    if(BTN_VOL_DOWN_PIN >= 0) pinMode(BTN_VOL_DOWN_PIN, INPUT_PULLUP);
+    if(BTN_VOL_UP_PIN >= 0) pinMode(BTN_VOL_UP_PIN, INPUT_PULLUP);
 
     randomSeed((uint32_t)analogRead(BAT_PIN));
 
@@ -184,8 +203,41 @@ void updateLedRing() {
     ledHue += 3;
 }
 
+static void handlePhysicalButtons() {
+    if(buttonPressed(BTN_PREV_PIN, lastBtnPrevMs)) {
+        recordInteraction();
+        playPreviousTrack();
+    }
+
+    if(buttonPressed(BTN_NEXT_PIN, lastBtnNextMs)) {
+        recordInteraction();
+        playNextTrack();
+    }
+
+    if(buttonPressed(BTN_PLAY_PIN, lastBtnPlayMs)) {
+        recordInteraction();
+        togglePlayPause();
+    }
+
+    if(buttonPressed(BTN_VOL_DOWN_PIN, lastBtnVolDownMs)) {
+        recordInteraction();
+        if(model.volume > 0) model.volume--;
+        audio.setVolume(model.volume);
+        updateMainScreen();
+    }
+
+    if(buttonPressed(BTN_VOL_UP_PIN, lastBtnVolUpMs)) {
+        recordInteraction();
+        if(model.volume < audio.getVolumeSteps()) model.volume++;
+        audio.setVolume(model.volume);
+        updateMainScreen();
+    }
+}
+
 void handleTimers() {
     unsigned long now = millis();
+
+    handlePhysicalButtons();
 
     if(timeReached(model.sleepDeadlineMs)) {
         stopPlayback();
@@ -203,8 +255,10 @@ void handleTimers() {
 
     if(now - lastUiRefreshMs > 500UL) {
         updateBattery();
+
         if(appState == AppState::NowPlaying) updateMainScreen();
-        if(appState == AppState::Screensaver) updateScreensaverScreen();
+        else if(appState == AppState::Screensaver) updateScreensaverScreen();
+
         lastUiRefreshMs = now;
     }
 

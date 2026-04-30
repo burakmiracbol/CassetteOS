@@ -26,16 +26,19 @@ void setup() {
     }
 
     showBootMessage("MP3 kutuphanesi taraniyor...");
-    scanSDCard(SD, "/", 3);
+    scanSDCard(SD, "/", SD_SCAN_MAX_DEPTH);
     loadFavorites();
     updateBattery();
 
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio.setVolume(model.volume);
+    initAudioCallbacks();
+    applyEqMode();
 
     if(hasTracks()) {
         startTrack(0);
     } else {
+        setErrorMessage("No MP3 files found on SD");
         setAppState(AppState::NowPlaying);
     }
 }

@@ -12,6 +12,10 @@ bool hasTracks() {
     return !model.tracks.empty();
 }
 
+bool isTrackIndexValid(size_t index) {
+    return index < model.tracks.size();
+}
+
 bool timeReached(unsigned long deadline) {
     return deadline > 0 && (long)(millis() - deadline) >= 0;
 }
@@ -20,12 +24,21 @@ void recordInteraction() {
     lastInteractionMs = millis();
 }
 
+void setErrorMessage(const String &message) {
+    model.lastError = message;
+}
+
+void clearNowPlayingMetadata() {
+    model.id3Title = "";
+    model.id3Artist = "";
+    model.id3Album = "";
+    model.streamTitle = "";
+}
+
 String fileTitleFromPath(const String &path) {
     int slash = path.lastIndexOf('/');
     String title = slash >= 0 ? path.substring(slash + 1) : path;
-    if(title.endsWith(".mp3") || title.endsWith(".MP3")) {
-        title.remove(title.length() - 4);
-    }
+    if(title.endsWith(".mp3") || title.endsWith(".MP3")) title.remove(title.length() - 4);
     return title;
 }
 
@@ -36,12 +49,19 @@ String albumFromPath(const String &path) {
     String folder = path.substring(0, slash);
     int previousSlash = folder.lastIndexOf('/');
     if(previousSlash >= 0) folder = folder.substring(previousSlash + 1);
-    return folder.length() == 0 ? "Root" : folder;
+    if(folder.length() == 0) return "Root";
+    return folder;
 }
 
 String normalizeText(const String &text) {
     String out = text;
     out.toLowerCase();
+    out.replace("ı", "i");
+    out.replace("ğ", "g");
+    out.replace("ü", "u");
+    out.replace("ş", "s");
+    out.replace("ö", "o");
+    out.replace("ç", "c");
     return out;
 }
 
@@ -52,13 +72,30 @@ String formatTime(uint32_t seconds) {
 }
 
 String currentTrackTitle() {
-    if(!hasTracks() || model.currentIndex >= model.tracks.size()) return "SD kartta MP3 yok";
+    if(!hasTracks() || !isTrackIndexValid(model.currentIndex)) return "No tracks";
     return model.tracks[model.currentIndex].title;
 }
 
 String currentTrackAlbum() {
-    if(!hasTracks() || model.currentIndex >= model.tracks.size()) return "Bos kutuphane";
+    if(!hasTracks() || !isTrackIndexValid(model.currentIndex)) return "Empty library";
     return model.tracks[model.currentIndex].album;
+}
+
+String currentTrackArtist() {
+    if(model.id3Artist.length() > 0) return model.id3Artist;
+    return "Unknown artist";
+}
+
+String activeTrackTitle() {
+    if(model.streamTitle.length() > 0) return model.streamTitle;
+    if(model.id3Title.length() > 0) return model.id3Title;
+    return currentTrackTitle();
+}
+
+String activeTrackSubtitle() {
+    String artist = currentTrackArtist();
+    String album = model.id3Album.length() > 0 ? model.id3Album : currentTrackAlbum();
+    return artist + " | " + album;
 }
 
 const char *appStateName(AppState state) {
@@ -66,6 +103,8 @@ const char *appStateName(AppState state) {
         case AppState::Boot: return "BOOT";
         case AppState::NowPlaying: return "NOW";
         case AppState::Search: return "SEARCH";
+        case AppState::Library: return "LIB";
+        case AppState::Favorites: return "FAVS";
         case AppState::Screensaver: return "SAVER";
         case AppState::DisplayOff: return "OFF";
         case AppState::Error: return "ERROR";
@@ -76,8 +115,10 @@ const char *appStateName(AppState state) {
 const char *playerStateName(PlayerState state) {
     switch(state) {
         case PlayerState::Stopped: return "STOP";
+        case PlayerState::Loading: return "LOAD";
         case PlayerState::Playing: return "PLAY";
         case PlayerState::Paused: return "PAUSE";
+        case PlayerState::Error: return "ERR";
     }
     return "?";
 }
@@ -113,9 +154,17 @@ const char *sleepModeName(SleepTimerMode mode) {
     return "?";
 }
 
+const char *themeModeName(ThemeMode mode) {
+    switch(mode) {
+        case ThemeMode::Classic: return "TH1";
+        case ThemeMode::Neon: return "TH2";
+        case ThemeMode::Minimal: return "TH3";
+    }
+    return "?";
+}
+
 void setPlayerState(PlayerState next) {
     if(model.playerState == next) return;
-
     PlayerState previous = model.playerState;
     model.playerState = next;
     Serial.printf("PlayerState: %s -> %s\n", playerStateName(previous), playerStateName(next));
@@ -152,6 +201,20 @@ void setAppState(AppState next) {
             updateSearchResults();
             updateSearchScreen();
             loadScreen(screenSearch);
+            break;
+
+        case AppState::Library:
+            setBacklight(true);
+            createLibraryScreen();
+            updateLibraryScreen();
+            loadScreen(screenLibrary);
+            break;
+
+        case AppState::Favorites:
+            setBacklight(true);
+            createFavoritesScreen();
+            updateFavoritesScreen();
+            loadScreen(screenFavorites);
             break;
 
         case AppState::Screensaver:
