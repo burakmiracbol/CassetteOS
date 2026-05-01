@@ -9,6 +9,7 @@ extern lv_obj_t *screenSearch;
 extern lv_obj_t *screenLibrary;
 extern lv_obj_t *screenFavorites;
 extern lv_obj_t *screenSaver;
+extern lv_obj_t *screenSettings;
 extern lv_obj_t *screenError;
 
 void loadScreen(lv_obj_t *screen);
@@ -20,6 +21,7 @@ void createMainScreen();
 void createSearchScreen();
 void createLibraryScreen();
 void createFavoritesScreen();
+void createSettingsScreen();
 void createScreensaverScreen();
 void createErrorScreen();
 
@@ -28,6 +30,7 @@ void updateSearchResults();
 void updateSearchScreen();
 void updateLibraryScreen();
 void updateFavoritesScreen();
+void updateSettingsScreen();
 void updateScreensaverScreen();
 
 bool tryLoadLvglProScreen(AppState state);

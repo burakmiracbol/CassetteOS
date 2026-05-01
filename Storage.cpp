@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "ui/Ui.h"
 #include <SD.h>
+#include <EEPROM.h>
 
 static bool endsWithMp3(const String &path) {
     String lower = path;
@@ -135,4 +136,35 @@ void collectLibraryTrackIndexes(std::vector<size_t> &out, LibraryScope scope, in
     for(size_t i = 0; i < model.tracks.size(); i++) {
         if(model.tracks[i].album == selectedAlbum) out.push_back(i);
     }
+}
+
+void loadSettings() {
+    EEPROM.begin(7); // 7 bytes for settings
+    model.volume = EEPROM.read(0);
+    if(model.volume > 21) model.volume = 12; // default
+    model.brightness = EEPROM.read(1);
+    if(model.brightness > 255) model.brightness = 255;
+    model.eqMode = (EqMode)EEPROM.read(2);
+    if((uint8_t)model.eqMode > (uint8_t)EqMode::Jazz) model.eqMode = EqMode::Normal;
+    model.sleepMode = (SleepTimerMode)EEPROM.read(3);
+    if((uint8_t)model.sleepMode > (uint8_t)SleepTimerMode::Min90) model.sleepMode = SleepTimerMode::Off;
+    model.themeMode = (ThemeMode)EEPROM.read(4);
+    if((uint8_t)model.themeMode > (uint8_t)ThemeMode::Minimal) model.themeMode = ThemeMode::Classic;
+    model.shuffle = EEPROM.read(5) != 0;
+    model.repeatMode = (RepeatMode)EEPROM.read(6);
+    if((uint8_t)model.repeatMode > (uint8_t)RepeatMode::All) model.repeatMode = RepeatMode::Off;
+    EEPROM.end();
+}
+
+void saveSettings() {
+    EEPROM.begin(7);
+    EEPROM.write(0, model.volume);
+    EEPROM.write(1, model.brightness);
+    EEPROM.write(2, (uint8_t)model.eqMode);
+    EEPROM.write(3, (uint8_t)model.sleepMode);
+    EEPROM.write(4, (uint8_t)model.themeMode);
+    EEPROM.write(5, model.shuffle ? 1 : 0);
+    EEPROM.write(6, (uint8_t)model.repeatMode);
+    EEPROM.commit();
+    EEPROM.end();
 }

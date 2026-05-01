@@ -28,6 +28,7 @@ void setup() {
     showBootMessage("MP3 kutuphanesi taraniyor...");
     scanSDCard(SD, "/", SD_SCAN_MAX_DEPTH);
     loadFavorites();
+    loadSettings();
     updateBattery();
 
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);

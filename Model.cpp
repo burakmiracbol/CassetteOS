@@ -108,8 +108,9 @@ const char *appStateName(AppState state) {
         case AppState::Screensaver: return "SAVER";
         case AppState::DisplayOff: return "OFF";
         case AppState::Error: return "ERROR";
+        case AppState::Settings: return "SET";
+        default: return "?";
     }
-    return "?";
 }
 
 const char *playerStateName(PlayerState state) {
@@ -198,6 +199,17 @@ void setAppState(AppState next) {
             createMainScreen();
             loadScreen(screenMain);
             updateMainScreen();
+            break;
+
+        case AppState::Settings:
+            setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
+            createSettingsScreen();
+            updateSettingsScreen();
+            loadScreen(screenSettings);
             break;
 
         case AppState::Search:

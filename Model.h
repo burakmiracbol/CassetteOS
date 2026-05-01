@@ -7,6 +7,7 @@
 enum class AppState : uint8_t {
     Boot,
     NowPlaying,
+    Settings,
     Search,
     Library,
     Favorites,

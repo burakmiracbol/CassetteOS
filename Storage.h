@@ -18,4 +18,7 @@ void clearFavorites();
 void collectFavoriteTrackIndexes(std::vector<size_t> &out);
 void collectLibraryTrackIndexes(std::vector<size_t> &out, LibraryScope scope, int albumFilterIndex);
 
+void loadSettings();
+void saveSettings();
+
 #endif
