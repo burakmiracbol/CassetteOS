@@ -1,0 +1,9 @@
+<screen>
+  <view style_bg_color="0x000000" style_text_color="0xffffff">
+    <lv_label text="Screensaver" align="top_mid" y="8" />
+    <lv_arc align="center" x="-50" width="90" height="90" />
+    <lv_arc align="center" x="50" width="90" height="90" />
+    <lv_label text="Tap to return" align="bottom_mid" y="-12" />
+    <screen_load_event screen="screen_now_playing" trigger="clicked" />
+  </view>
+</screen>

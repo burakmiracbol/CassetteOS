@@ -1,4 +1,4 @@
-<screen>
+<screen permanent="true">
   <view>
     <lv_label text="ESP32 MP3 Player" align="center" />
   </view>

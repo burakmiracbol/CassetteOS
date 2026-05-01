@@ -1,0 +1,10 @@
+<screen>
+  <view>
+    <lv_label text="Error" align="top_mid" y="8" />
+    <lv_label text="An error occurred." align="center" />
+    <lv_button align="bottom_mid" y="-10">
+      <lv_label text="Back" />
+      <screen_load_event screen="screen_now_playing" />
+    </lv_button>
+  </view>
+</screen>

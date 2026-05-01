@@ -1,8 +1,0 @@
-<screen>
-  <view>
-    <lv_arc x="44" y="70" width="90" height="90" />
-    <lv_arc x="186" y="70" width="90" height="90" />
-    <lv_label text="Track Title" x="10" y="190" width="300" />
-    <lv_label text="Playing | 0 tracks" x="10" y="214" width="300" />
-  </view>
-</screen>

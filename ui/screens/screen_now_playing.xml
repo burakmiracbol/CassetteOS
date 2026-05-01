@@ -1,0 +1,11 @@
+<screen permanent="true">
+  <view>
+    <lv_label text="Now Playing" align="top_mid" y="8" />
+    <lv_label text="Track Title" align="top_left" x="8" y="32" />
+    <lv_slider align="top_left" x="8" y="56" width="304" />
+    <lv_button align="bottom_mid" y="-10">
+      <lv_label text="Search" />
+      <screen_create_event screen="screen_search" />
+    </lv_button>
+  </view>
+</screen>

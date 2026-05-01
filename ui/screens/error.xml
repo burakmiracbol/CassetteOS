@@ -1,7 +1,0 @@
-<screen>
-  <view>
-    <lv_label text="Error" x="8" y="8" />
-    <lv_button x="252" y="4" width="60" height="28"><lv_label text="BACK" align="center"/></lv_button>
-    <lv_label text="An error occurred. Press BACK." x="8" y="40" width="296" />
-  </view>
-</screen>

@@ -1,0 +1,12 @@
+<screen>
+  <view>
+    <lv_label text="Library" align="top_mid" y="8" />
+    <lv_obj align="center" width="300" height="140">
+      <lv_label text="Track list placeholder" align="center" />
+    </lv_obj>
+    <lv_button align="bottom_mid" y="-10">
+      <lv_label text="Back" />
+      <screen_load_event screen="screen_now_playing" />
+    </lv_button>
+  </view>
+</screen>

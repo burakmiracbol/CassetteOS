@@ -1,0 +1,10 @@
+<screen>
+  <view>
+    <lv_label text="Search" align="top_mid" y="8" />
+    <lv_textarea text="" placeholder_text="Type to search..." align="top_mid" y="40" width="280" />
+    <lv_button align="bottom_mid" y="-10">
+      <lv_label text="Back" />
+      <screen_load_event screen="screen_now_playing" />
+    </lv_button>
+  </view>
+</screen>
