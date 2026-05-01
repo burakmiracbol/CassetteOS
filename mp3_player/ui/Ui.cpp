@@ -1,7 +1,8 @@
 #include "Ui.h"
-#include "Model.h"
-#include "Player.h"
-#include "Storage.h"
+#include "../Model.h"
+#include "../Player.h"
+#include "../Storage.h"
+#include "UiLvglPro.h"
 
 static lv_obj_t *screenBoot = nullptr;
 lv_obj_t *screenMain = nullptr;
@@ -36,23 +37,6 @@ static lv_obj_t *btnRepeat = nullptr;
 static lv_obj_t *btnFavorite = nullptr;
 static lv_obj_t *btnSleep = nullptr;
 static lv_obj_t *btnTheme = nullptr;
-
-// Search screen
-static lv_obj_t *searchInputLabel = nullptr;
-static lv_obj_t *searchResultList = nullptr;
-static String searchQuery;
-static std::vector<size_t> searchResults;
-
-// Library screen
-static lv_obj_t *libraryList = nullptr;
-static lv_obj_t *libraryScopeLabel = nullptr;
-static lv_obj_t *libraryAlbumLabel = nullptr;
-static std::vector<size_t> libraryIndexes;
-
-// Favorites screen
-static lv_obj_t *favoritesList = nullptr;
-static lv_obj_t *favoritesInfoLabel = nullptr;
-static std::vector<size_t> favoriteIndexes;
 
 // Screensaver
 static lv_obj_t *saverTitleLabel = nullptr;
@@ -92,6 +76,8 @@ static void favorites_exit_event_cb(lv_event_t *e);
 
 static void screensaver_event_cb(lv_event_t *e);
 static void error_exit_event_cb(lv_event_t *e);
+static bool lvglProReady = false;
+static lv_obj_t *createPlaceholderScreen(const char *titleText, const char *bodyText, lv_event_cb_t backCb);
 
 void loadScreen(lv_obj_t *screen) {
 #if LVGL_VERSION_MAJOR >= 9
@@ -99,6 +85,25 @@ void loadScreen(lv_obj_t *screen) {
 #else
     lv_scr_load(screen);
 #endif
+}
+
+bool tryLoadLvglProScreen(AppState state) {
+    if(!lvglProReady) {
+        lvglProReady = lvglProInit();
+    }
+
+    if(!lvglProReady) return false;
+
+    lv_obj_t *screen = lvglProScreenForState(state);
+    if(!screen) return false;
+
+    loadScreen(screen);
+    return true;
+}
+
+void syncLvglProUi() {
+    if(!lvglProReady) return;
+    lvglProSyncFromModel();
 }
 
 static lv_obj_t *eventTargetObj(lv_event_t *e) {
@@ -119,6 +124,24 @@ static lv_obj_t *makeButton(lv_obj_t *parent, int w, int h, int x, int y, const 
     lv_label_set_text(label, text);
     lv_obj_center(label);
     return btn;
+}
+
+static lv_obj_t *createPlaceholderScreen(const char *titleText, const char *bodyText, lv_event_cb_t backCb) {
+    lv_obj_t *screen = lv_obj_create(nullptr);
+    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *title = lv_label_create(screen);
+    lv_label_set_text(title, titleText);
+    lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 8);
+
+    lv_obj_t *body = lv_label_create(screen);
+    lv_obj_set_width(body, 296);
+    lv_label_set_long_mode(body, LV_LABEL_LONG_MODE_WRAP);
+    lv_label_set_text(body, bodyText);
+    lv_obj_align(body, LV_ALIGN_TOP_LEFT, 8, 40);
+
+    makeButton(screen, 60, 28, 252, 4, "BACK", backCb);
+    return screen;
 }
 
 static void styleToggleButton(lv_obj_t *btn, bool on, lv_color_t active, lv_color_t inactive) {
@@ -262,98 +285,17 @@ void createMainScreen() {
 
 void createSearchScreen() {
     if(screenSearch) return;
-
-    screenSearch = lv_obj_create(nullptr);
-    lv_obj_clear_flag(screenSearch, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(screenSearch, lv_color_black(), 0);
-
-    lv_obj_t *title = lv_label_create(screenSearch);
-    lv_label_set_text(title, "Search");
-    lv_obj_set_style_text_color(title, lv_color_white(), 0);
-    lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 8);
-
-    makeButton(screenSearch, 54, 28, 258, 4, "BACK", search_exit_event_cb);
-
-    searchInputLabel = lv_label_create(screenSearch);
-    lv_obj_set_width(searchInputLabel, 300);
-    lv_label_set_long_mode(searchInputLabel, LV_LABEL_LONG_MODE_DOTS);
-    lv_obj_set_style_text_color(searchInputLabel, lv_color_hex(0x9BE7FF), 0);
-    lv_obj_align(searchInputLabel, LV_ALIGN_TOP_LEFT, 10, 36);
-
-    searchResultList = lv_list_create(screenSearch);
-    lv_obj_set_size(searchResultList, 300, 88);
-    lv_obj_align(searchResultList, LV_ALIGN_TOP_LEFT, 10, 56);
-
-    static const char *keys[4][8] = {
-        {"A", "B", "C", "D", "E", "F", "G", "H"},
-        {"I", "J", "K", "L", "M", "N", "O", "P"},
-        {"Q", "R", "S", "T", "U", "V", "W", "X"},
-        {"Y", "Z", "<", "SP", "CH", "SH", "OK", "CLR"}
-    };
-
-    for(uint8_t row = 0; row < 4; row++) {
-        for(uint8_t col = 0; col < 8; col++) {
-            lv_obj_t *btn = lv_btn_create(screenSearch);
-            lv_obj_set_size(btn, 34, 24);
-            lv_obj_align(btn, LV_ALIGN_TOP_LEFT, 10 + (col * 37), 152 + (row * 21));
-            lv_obj_add_event_cb(btn, search_key_event_cb, LV_EVENT_CLICKED, nullptr);
-
-            lv_obj_t *label = lv_label_create(btn);
-            lv_label_set_text(label, keys[row][col]);
-            lv_obj_center(label);
-        }
-    }
+    screenSearch = createPlaceholderScreen("Search", "Legacy search UI disabled. Build this screen in LVGL Pro and export generated UI files.", search_exit_event_cb);
 }
 
 void createLibraryScreen() {
     if(screenLibrary) return;
-
-    screenLibrary = lv_obj_create(nullptr);
-    lv_obj_clear_flag(screenLibrary, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_t *title = lv_label_create(screenLibrary);
-    lv_label_set_text(title, "Library");
-    lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 8);
-
-    makeButton(screenLibrary, 54, 28, 258, 4, "BACK", library_exit_event_cb);
-
-    lv_obj_t *scopeBtn = makeButton(screenLibrary, 56, 26, 8, 34, "SCOPE", library_scope_event_cb);
-    libraryScopeLabel = lv_obj_get_child(scopeBtn, 0);
-
-    makeButton(screenLibrary, 36, 26, 72, 34, "<", library_album_prev_event_cb);
-    makeButton(screenLibrary, 36, 26, 276, 34, ">", library_album_next_event_cb);
-
-    libraryAlbumLabel = lv_label_create(screenLibrary);
-    lv_obj_set_width(libraryAlbumLabel, 160);
-    lv_label_set_long_mode(libraryAlbumLabel, LV_LABEL_LONG_MODE_DOTS);
-    lv_obj_align(libraryAlbumLabel, LV_ALIGN_TOP_MID, 0, 40);
-
-    libraryList = lv_list_create(screenLibrary);
-    lv_obj_set_size(libraryList, 300, 168);
-    lv_obj_align(libraryList, LV_ALIGN_TOP_LEFT, 10, 66);
+    screenLibrary = createPlaceholderScreen("Library", "Legacy library UI disabled. Continue in LVGL Pro and map AppState::Library to generated screen.", library_exit_event_cb);
 }
 
 void createFavoritesScreen() {
     if(screenFavorites) return;
-
-    screenFavorites = lv_obj_create(nullptr);
-    lv_obj_clear_flag(screenFavorites, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_t *title = lv_label_create(screenFavorites);
-    lv_label_set_text(title, "Favorites");
-    lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 8);
-
-    makeButton(screenFavorites, 54, 28, 258, 4, "BACK", favorites_exit_event_cb);
-    makeButton(screenFavorites, 54, 28, 200, 4, "CLR", favorites_clear_event_cb);
-
-    favoritesInfoLabel = lv_label_create(screenFavorites);
-    lv_obj_set_width(favoritesInfoLabel, 220);
-    lv_label_set_long_mode(favoritesInfoLabel, LV_LABEL_LONG_MODE_DOTS);
-    lv_obj_align(favoritesInfoLabel, LV_ALIGN_TOP_LEFT, 8, 38);
-
-    favoritesList = lv_list_create(screenFavorites);
-    lv_obj_set_size(favoritesList, 300, 174);
-    lv_obj_align(favoritesList, LV_ALIGN_TOP_LEFT, 10, 62);
+    screenFavorites = createPlaceholderScreen("Favorites", "Legacy favorites UI disabled. Move this view into LVGL Pro generated layout.", favorites_exit_event_cb);
 }
 
 void createScreensaverScreen() {
@@ -390,18 +332,8 @@ void createScreensaverScreen() {
 
 void createErrorScreen() {
     if(screenError) return;
-
-    screenError = lv_obj_create(nullptr);
-    lv_obj_set_style_bg_color(screenError, lv_color_hex(0x210B0B), 0);
-
-    errorLabel = lv_label_create(screenError);
-    lv_obj_set_width(errorLabel, 286);
-    lv_label_set_long_mode(errorLabel, LV_LABEL_LONG_MODE_WRAP);
-    lv_obj_set_style_text_color(errorLabel, lv_color_white(), 0);
-    lv_label_set_text(errorLabel, "Error");
-    lv_obj_align(errorLabel, LV_ALIGN_CENTER, 0, -20);
-
-    makeButton(screenError, 90, 34, 114, 170, "HOME", error_exit_event_cb);
+    screenError = createPlaceholderScreen("Error", "An error occurred. Press BACK to return to Now Playing.", error_exit_event_cb);
+    errorLabel = lv_obj_get_child(screenError, 1);
 }
 
 void updateMainScreen() {
@@ -448,70 +380,23 @@ void updateMainScreen() {
     lv_label_set_text(labelSleepBtn, sleepModeName(model.sleepMode));
     lv_label_set_text(labelEqBtn, eqModeName(model.eqMode));
     lv_label_set_text(labelThemeBtn, themeModeName(model.themeMode));
+    syncLvglProUi();
 }
 
 void updateSearchResults() {
-    searchResults.clear();
-
-    String query = normalizeText(searchQuery);
-    for(size_t i = 0; i < model.tracks.size(); i++) {
-        String haystack = normalizeText(model.tracks[i].title + " " + model.tracks[i].album + " " + model.tracks[i].path);
-        if(query.length() == 0 || haystack.indexOf(query) >= 0) searchResults.push_back(i);
-    }
-
-    if(searchResults.empty()) model.searchSelection = 0;
-    else if(model.searchSelection >= searchResults.size()) model.searchSelection = searchResults.size() - 1;
+    model.searchSelection = 0;
 }
 
 void updateSearchScreen() {
-    if(!screenSearch) return;
-
-    String inputText = searchQuery.length() > 0 ? searchQuery : String("Type to filter");
-    lv_label_set_text(searchInputLabel, inputText.c_str());
-    lv_obj_clean(searchResultList);
-
-    uint8_t count = min((size_t)8, searchResults.size());
-    for(uint8_t i = 0; i < count; i++) {
-        size_t trackIndex = searchResults[i];
-        String row = model.tracks[trackIndex].title + " - " + model.tracks[trackIndex].album;
-        lv_obj_t *entry = lv_list_add_btn(searchResultList, nullptr, row.c_str());
-        lv_obj_add_event_cb(entry, search_result_event_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)trackIndex);
-    }
+    // Legacy screen intentionally simplified; LVGL Pro will own this.
 }
 
 void updateLibraryScreen() {
-    if(!screenLibrary) return;
-
-    collectLibraryTrackIndexes(libraryIndexes, model.libraryScope, model.albumFilterIndex);
-    lv_label_set_text(libraryScopeLabel, model.libraryScope == LibraryScope::AllTracks ? "ALL" : "ALB");
-
-    String albumText = "All albums";
-    if(model.libraryScope == LibraryScope::AlbumOnly && model.albumFilterIndex >= 0 && model.albumFilterIndex < (int)model.albums.size()) {
-        albumText = model.albums[(size_t)model.albumFilterIndex];
-    }
-    lv_label_set_text(libraryAlbumLabel, albumText.c_str());
-
-    lv_obj_clean(libraryList);
-    for(size_t idx : libraryIndexes) {
-        String row = model.tracks[idx].title + " - " + model.tracks[idx].album;
-        lv_obj_t *entry = lv_list_add_btn(libraryList, nullptr, row.c_str());
-        lv_obj_add_event_cb(entry, library_track_event_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)idx);
-    }
+    // Legacy screen intentionally simplified; LVGL Pro will own this.
 }
 
 void updateFavoritesScreen() {
-    if(!screenFavorites) return;
-
-    collectFavoriteTrackIndexes(favoriteIndexes);
-    String info = String(favoriteIndexes.size()) + " items";
-    lv_label_set_text(favoritesInfoLabel, info.c_str());
-
-    lv_obj_clean(favoritesList);
-    for(size_t idx : favoriteIndexes) {
-        String row = model.tracks[idx].title + " - " + model.tracks[idx].album;
-        lv_obj_t *entry = lv_list_add_btn(favoritesList, nullptr, row.c_str());
-        lv_obj_add_event_cb(entry, favorites_track_event_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)idx);
-    }
+    // Legacy screen intentionally simplified; LVGL Pro will own this.
 }
 
 void updateScreensaverScreen() {
@@ -572,8 +457,6 @@ static void favorite_event_cb(lv_event_t *e) {
 static void search_open_event_cb(lv_event_t *e) {
     (void)e;
     recordInteraction();
-    searchQuery = "";
-    updateSearchResults();
     setAppState(AppState::Search);
 }
 
@@ -652,38 +535,11 @@ static void theme_event_cb(lv_event_t *e) {
 }
 
 static void search_key_event_cb(lv_event_t *e) {
-    recordInteraction();
-
-    lv_obj_t *btn = eventTargetObj(e);
-    lv_obj_t *label = lv_obj_get_child(btn, 0);
-    if(!label) return;
-
-    String key = lv_label_get_text(label);
-    if(key == "<") {
-        if(searchQuery.length() > 0) searchQuery.remove(searchQuery.length() - 1);
-    } else if(key == "SP") {
-        searchQuery += ' ';
-    } else if(key == "CLR") {
-        searchQuery = "";
-    } else if(key == "OK") {
-        if(!searchResults.empty()) startTrack(searchResults[0]);
-        return;
-    } else if(key == "CH") {
-        searchQuery += "CH";
-    } else if(key == "SH") {
-        searchQuery += "SH";
-    } else {
-        searchQuery += key;
-    }
-
-    updateSearchResults();
-    updateSearchScreen();
+    (void)e;
 }
 
 static void search_result_event_cb(lv_event_t *e) {
-    recordInteraction();
-    size_t trackIndex = (size_t)(uintptr_t)lv_event_get_user_data(e);
-    startTrack(trackIndex);
+    (void)e;
 }
 
 static void search_exit_event_cb(lv_event_t *e) {
@@ -693,41 +549,19 @@ static void search_exit_event_cb(lv_event_t *e) {
 }
 
 static void library_track_event_cb(lv_event_t *e) {
-    recordInteraction();
-    size_t trackIndex = (size_t)(uintptr_t)lv_event_get_user_data(e);
-    startTrack(trackIndex);
+    (void)e;
 }
 
 static void library_scope_event_cb(lv_event_t *e) {
     (void)e;
-    recordInteraction();
-    if(model.libraryScope == LibraryScope::AllTracks) {
-        model.libraryScope = LibraryScope::AlbumOnly;
-        if(model.albums.empty()) model.albumFilterIndex = -1;
-        else if(model.albumFilterIndex < 0) model.albumFilterIndex = 0;
-    } else {
-        model.libraryScope = LibraryScope::AllTracks;
-        model.albumFilterIndex = -1;
-    }
-    updateLibraryScreen();
 }
 
 static void library_album_prev_event_cb(lv_event_t *e) {
     (void)e;
-    recordInteraction();
-    if(model.libraryScope != LibraryScope::AlbumOnly || model.albums.empty()) return;
-    if(model.albumFilterIndex <= 0) model.albumFilterIndex = (int)model.albums.size() - 1;
-    else model.albumFilterIndex--;
-    updateLibraryScreen();
 }
 
 static void library_album_next_event_cb(lv_event_t *e) {
     (void)e;
-    recordInteraction();
-    if(model.libraryScope != LibraryScope::AlbumOnly || model.albums.empty()) return;
-    if(model.albumFilterIndex < 0 || model.albumFilterIndex >= (int)model.albums.size() - 1) model.albumFilterIndex = 0;
-    else model.albumFilterIndex++;
-    updateLibraryScreen();
 }
 
 static void library_exit_event_cb(lv_event_t *e) {
@@ -737,17 +571,11 @@ static void library_exit_event_cb(lv_event_t *e) {
 }
 
 static void favorites_track_event_cb(lv_event_t *e) {
-    recordInteraction();
-    size_t trackIndex = (size_t)(uintptr_t)lv_event_get_user_data(e);
-    startTrack(trackIndex);
+    (void)e;
 }
 
 static void favorites_clear_event_cb(lv_event_t *e) {
     (void)e;
-    recordInteraction();
-    clearFavorites();
-    updateFavoritesScreen();
-    updateMainScreen();
 }
 
 static void favorites_exit_event_cb(lv_event_t *e) {

@@ -1,6 +1,6 @@
 #include "Model.h"
 #include "Hardware.h"
-#include "Ui.h"
+#include "ui/Ui.h"
 
 PlayerModel model;
 AppState appState = AppState::Boot;
@@ -169,6 +169,7 @@ void setPlayerState(PlayerState next) {
     model.playerState = next;
     Serial.printf("PlayerState: %s -> %s\n", playerStateName(previous), playerStateName(next));
     updateMainScreen();
+    syncLvglProUi();
 }
 
 void setAppState(AppState next) {
@@ -190,6 +191,10 @@ void setAppState(AppState next) {
 
         case AppState::NowPlaying:
             setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
             createMainScreen();
             loadScreen(screenMain);
             updateMainScreen();
@@ -197,6 +202,10 @@ void setAppState(AppState next) {
 
         case AppState::Search:
             setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
             createSearchScreen();
             updateSearchResults();
             updateSearchScreen();
@@ -205,6 +214,10 @@ void setAppState(AppState next) {
 
         case AppState::Library:
             setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
             createLibraryScreen();
             updateLibraryScreen();
             loadScreen(screenLibrary);
@@ -212,6 +225,10 @@ void setAppState(AppState next) {
 
         case AppState::Favorites:
             setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
             createFavoritesScreen();
             updateFavoritesScreen();
             loadScreen(screenFavorites);
@@ -219,6 +236,10 @@ void setAppState(AppState next) {
 
         case AppState::Screensaver:
             setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
             createScreensaverScreen();
             updateScreensaverScreen();
             loadScreen(screenSaver);
@@ -230,6 +251,10 @@ void setAppState(AppState next) {
 
         case AppState::Error:
             setBacklight(true);
+            if(tryLoadLvglProScreen(next)) {
+                syncLvglProUi();
+                break;
+            }
             createErrorScreen();
             loadScreen(screenError);
             break;

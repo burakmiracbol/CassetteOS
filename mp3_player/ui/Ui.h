@@ -1,7 +1,8 @@
 #ifndef MP3_PLAYER_UI_H
 #define MP3_PLAYER_UI_H
 
-#include "Hardware.h"
+#include "../Hardware.h"
+#include "../Model.h"
 
 extern lv_obj_t *screenMain;
 extern lv_obj_t *screenSearch;
@@ -28,5 +29,8 @@ void updateSearchScreen();
 void updateLibraryScreen();
 void updateFavoritesScreen();
 void updateScreensaverScreen();
+
+bool tryLoadLvglProScreen(AppState state);
+void syncLvglProUi();
 
 #endif

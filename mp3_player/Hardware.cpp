@@ -1,7 +1,7 @@
 #include "Hardware.h"
 #include "Model.h"
 #include "Player.h"
-#include "Ui.h"
+#include "ui/Ui.h"
 
 TFT_eSPI tft = TFT_eSPI();
 Audio audio;
