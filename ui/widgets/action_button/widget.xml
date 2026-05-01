@@ -1,3 +1,8 @@
-<widget id="action_button" name="ActionButton">
-  <button id="button" text="ACTION" w="48" h="30" />
+<widget>
+  <api>
+    <prop name="btn_text" type="string" default="ACTION"/>
+  </api>
+  <view extends="lv_button" width="48" height="30">
+    <lv_label text="$btn_text" align="center"/>
+  </view>
 </widget>

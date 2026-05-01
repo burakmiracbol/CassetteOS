@@ -1,12 +1,11 @@
-<screen id="favorites" name="Favorites">
-  <meta>
-    <description>Favorites management screen placeholder from AppState::Favorites.</description>
-  </meta>
-
-  <label id="title" text="Favorites" x="8" y="8" />
-  <button id="btn_back" text="BACK" x="252" y="4" w="60" h="28" />
-  <button id="btn_clear" text="CLEAR" x="184" y="40" w="128" h="28" />
-  <label id="body" text="Favorite tracks list and quick actions." x="8" y="40" w="172" />
-
-  <list id="favorites_list" x="8" y="74" w="304" h="154" />
+<screen>
+  <view>
+    <lv_label text="Favorites" x="8" y="8" />
+    <lv_button x="252" y="4" width="60" height="28"><lv_label text="BACK" align="center"/></lv_button>
+    <lv_button x="184" y="40" width="128" height="28"><lv_label text="CLEAR" align="center"/></lv_button>
+    <lv_label text="Favorite tracks list and quick actions." x="8" y="40" width="172" />
+    <lv_obj x="8" y="74" width="304" height="154">
+      <lv_label text="Favorites list" align="center" />
+    </lv_obj>
+  </view>
 </screen>

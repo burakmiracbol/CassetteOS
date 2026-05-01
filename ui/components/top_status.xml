@@ -1,5 +1,7 @@
-<component id="top_status" name="TopStatus">
-  <label id="time" text="00:00 / 00:00" />
-  <label id="battery" text="BAT 100%" />
-  <label id="status" text="Stopped" />
+<component>
+  <view>
+    <lv_label text="00:00 / 00:00" x="0" y="0" />
+    <lv_label text="BAT 100%" x="0" y="16" />
+    <lv_label text="Stopped" x="0" y="32" />
+  </view>
 </component>

@@ -1,12 +1,11 @@
-<screen id="search" name="Search">
-  <meta>
-    <description>Search screen placeholder from AppState::Search.</description>
-  </meta>
-
-  <label id="title" text="Search" x="8" y="8" />
-  <button id="btn_back" text="BACK" x="252" y="4" w="60" h="28" />
-  <label id="body" text="Build search UI in LVGL Pro and bind search events." x="8" y="40" w="296" />
-
-  <input id="search_input" placeholder="Type to search..." x="8" y="80" w="304" h="32" />
-  <list id="search_results" x="8" y="120" w="304" h="108" />
+<screen>
+  <view>
+    <lv_label text="Search" x="8" y="8" />
+    <lv_button x="252" y="4" width="60" height="28"><lv_label text="BACK" align="center"/></lv_button>
+    <lv_label text="Build search UI in LVGL Pro and bind search events." x="8" y="40" width="296" />
+    <lv_textarea text="" placeholder_text="Type to search..." x="8" y="80" width="304" height="32" />
+    <lv_obj x="8" y="120" width="304" height="108">
+      <lv_label text="Search results list" align="center" />
+    </lv_obj>
+  </view>
 </screen>
