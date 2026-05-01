@@ -1,0 +1,7 @@
+<project name="ui_mp3_player">
+  <targets>
+    <target name="esp32_s3_320x240">
+      <display width="320" height="240" />
+    </target>
+  </targets>
+</project>

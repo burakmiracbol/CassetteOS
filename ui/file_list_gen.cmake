@@ -1,0 +1,4 @@
+list(
+  APPEND
+  LV_EDITOR_PROJECT_SOURCES
+)

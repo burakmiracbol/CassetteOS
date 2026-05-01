@@ -1,0 +1,25 @@
+<globals>
+  <api>
+    <!-- Add enumdefs here when needed -->
+  </api>
+
+  <consts>
+    <!-- Add global constants here -->
+  </consts>
+
+  <styles>
+    <!-- Add reusable global styles here -->
+  </styles>
+
+  <subjects>
+    <!-- Add data binding subjects here -->
+  </subjects>
+
+  <images>
+    <!-- Add image declarations here -->
+  </images>
+
+  <fonts>
+    <!-- Add font declarations here -->
+  </fonts>
+</globals>
