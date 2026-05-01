@@ -1,0 +1,31 @@
+<screen id="now_playing" name="NowPlaying">
+  <meta>
+    <description>Main playback UI. Mirrors createMainScreen() controls.</description>
+  </meta>
+
+  <label id="title" text="Track Title" x="8" y="6" w="304" />
+  <label id="subtitle" text="Artist / Album" x="8" y="28" w="304" />
+
+  <slider id="seek_slider" x="8" y="50" w="304" h="12" min="0" max="1000" />
+  <label id="time" text="00:00 / 00:00" x="8" y="66" />
+  <label id="status" text="Stopped NowPlaying" align="top_right" x="-8" y="66" />
+  <label id="battery" text="BAT 100%" align="top_right" x="-8" y="90" />
+
+  <button id="btn_library" text="LIB" x="8" y="88" w="48" h="28" />
+  <button id="btn_search" text="SRH" x="62" y="88" w="48" h="28" />
+  <button id="btn_favorites" text="FLS" x="116" y="88" w="48" h="28" />
+
+  <button id="btn_prev" text="PREV" x="34" y="122" w="66" h="36" />
+  <button id="btn_play" text="PLAY" x="116" y="122" w="88" h="36" />
+  <button id="btn_next" text="NEXT" x="220" y="122" w="66" h="36" />
+
+  <slider id="volume_slider" x="8" y="168" w="215" h="14" min="0" max="21" />
+  <label id="volume" text="VOL 12" align="top_right" x="-8" y="161" />
+
+  <button id="btn_shuffle" text="SHF" x="8" y="196" w="48" h="30" />
+  <button id="btn_repeat" text="REP" x="60" y="196" w="48" h="30" />
+  <button id="btn_favorite" text="FAV" x="112" y="196" w="48" h="30" />
+  <button id="btn_sleep" text="SLP" x="164" y="196" w="48" h="30" />
+  <button id="btn_eq" text="EQ" x="216" y="196" w="48" h="30" />
+  <button id="btn_theme" text="TH1" x="268" y="196" w="48" h="30" />
+</screen>

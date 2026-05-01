@@ -1,0 +1,5 @@
+<component id="top_status" name="TopStatus">
+  <label id="time" text="00:00 / 00:00" />
+  <label id="battery" text="BAT 100%" />
+  <label id="status" text="Stopped" />
+</component>

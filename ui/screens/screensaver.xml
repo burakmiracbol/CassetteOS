@@ -1,0 +1,11 @@
+<screen id="screensaver" name="Screensaver">
+  <meta>
+    <description>Screensaver screen from AppState::Screensaver.</description>
+  </meta>
+
+  <arc id="arc_left" x="44" y="70" w="90" h="90" min="0" max="100" value="0" />
+  <arc id="arc_right" x="186" y="70" w="90" h="90" min="0" max="100" value="100" />
+
+  <label id="title" text="Track Title" x="10" y="190" w="300" />
+  <label id="state" text="Playing | 0 tracks" x="10" y="214" w="300" />
+</screen>

@@ -1,0 +1,7 @@
+<screen id="boot" name="Boot">
+  <meta>
+    <description>Initial boot/loading screen.</description>
+  </meta>
+
+  <label id="boot_label" text="ESP32 MP3 Player" align="center" />
+</screen>

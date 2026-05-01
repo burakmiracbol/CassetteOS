@@ -1,0 +1,9 @@
+<screen id="error" name="Error">
+  <meta>
+    <description>Error screen from AppState::Error.</description>
+  </meta>
+
+  <label id="title" text="Error" x="8" y="8" />
+  <button id="btn_back" text="BACK" x="252" y="4" w="60" h="28" />
+  <label id="error_message" text="An error occurred. Press BACK." x="8" y="40" w="296" />
+</screen>

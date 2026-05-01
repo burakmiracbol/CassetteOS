@@ -1,0 +1,16 @@
+<screen id="library" name="Library">
+  <meta>
+    <description>Library browsing screen placeholder from AppState::Library.</description>
+  </meta>
+
+  <label id="title" text="Library" x="8" y="8" />
+  <button id="btn_back" text="BACK" x="252" y="4" w="60" h="28" />
+  <label id="body" text="Library scope/album filters and track list." x="8" y="40" w="296" />
+
+  <button id="btn_scope" text="SCOPE" x="8" y="72" w="76" h="28" />
+  <button id="btn_album_prev" text="ALB-" x="92" y="72" w="56" h="28" />
+  <button id="btn_album_next" text="ALB+" x="154" y="72" w="56" h="28" />
+  <label id="album_info" text="All albums" x="216" y="78" />
+
+  <list id="track_list" x="8" y="106" w="304" h="122" />
+</screen>
